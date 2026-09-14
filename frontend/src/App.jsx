@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
 
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "https://ai-lead-qualification-lz2o.onrender.com";
+
 function App() {
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,7 +15,7 @@ function App() {
 
   const fetchLeads = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/leads");
+      const response = await fetch(`${API_URL}/leads`);
 
       if (!response.ok) {
         throw new Error("Failed to fetch leads");
@@ -83,7 +87,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/leads/${selectedLead.id}/review`,
+        `${API_URL}/leads/${selectedLead.id}/review`,
         {
           method: "POST",
           headers: {
@@ -135,7 +139,7 @@ function App() {
 
     try {
       const response = await fetch(
-        `http://127.0.0.1:8000/leads/${selectedLead.id}/execute-action`,
+        `${API_URL}/leads/${selectedLead.id}/execute-action`,
         {
           method: "POST",
         }
