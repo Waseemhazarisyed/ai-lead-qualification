@@ -1,8 +1,17 @@
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
 
 
-DATABASE_URL = "postgresql://waseem@localhost/lead_qualification"
+load_dotenv()
+
+
+DATABASE_URL = os.getenv(
+    "DATABASE_URL",
+    "postgresql://waseem@localhost/lead_qualification"
+)
 
 
 engine = create_engine(DATABASE_URL)
@@ -23,4 +32,3 @@ def get_db():
         yield db
     finally:
         db.close()
-        
