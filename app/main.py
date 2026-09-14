@@ -5,9 +5,12 @@ from sqlalchemy.orm import Session
 from app.schemas.lead import LeadCreate
 from app.schemas.review import LeadReviewRequest
 from app.models.lead import Lead
-from app.database.database import get_db
+from app.database.database import get_db, Base, engine
 from app.workflow.graph import lead_workflow
 from app.services.action import build_sales_action
+
+
+Base.metadata.create_all(bind=engine)
 
 
 app = FastAPI(
