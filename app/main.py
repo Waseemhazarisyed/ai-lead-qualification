@@ -22,7 +22,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "http://127.0.0.1:5173",
-        "https://ai-lead-qualification-d0x1oxfz8-ai-8a15.vercel.app",
+        "https://ai-lead-qualification-gamma.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
