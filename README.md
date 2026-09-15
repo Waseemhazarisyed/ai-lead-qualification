@@ -9,6 +9,14 @@ An end-to-end AI-powered sales workflow that automatically scores, classifies, s
 
 ---
 
+## Dashboard Preview
+
+<p align="center">
+  <img src="assets/dashboard.png" alt="AI Lead Qualification Dashboard" width="900"/>
+</p>
+
+---
+
 ## Project Highlights
 
 - 98.8% final untouched evaluation score
