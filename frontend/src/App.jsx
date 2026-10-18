@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "./App.css";
 
 const API_URL =
   import.meta.env.VITE_API_URL ||
@@ -22,11 +23,12 @@ function App() {
       }
 
       const data = await response.json();
+      const leadList = data.leads || [];
 
-      setLeads(data.leads || []);
+      setLeads(leadList);
       setLoading(false);
 
-      return data.leads || [];
+      return leadList;
     } catch (err) {
       console.error(err);
       setError("Could not load leads from backend.");
@@ -53,12 +55,6 @@ function App() {
     (lead) => lead.classification === "COLD"
   ).length;
 
-  const getBadgeStyle = (classification) => {
-    if (classification === "HOT") return hotBadge;
-    if (classification === "WARM") return warmBadge;
-    return coldBadge;
-  };
-
   const getClassificationIcon = (classification) => {
     if (classification === "HOT") return "🔥";
     if (classification === "WARM") return "🌤";
@@ -77,6 +73,15 @@ function App() {
   const handleSelectLead = (lead) => {
     setSelectedLead(lead);
     setActionMessage("");
+
+    setTimeout(() => {
+      document
+        .getElementById("lead-details")
+        ?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+    }, 50);
   };
 
   const handleReview = async (decision) => {
@@ -94,7 +99,7 @@ function App() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            decision: decision,
+            decision,
             notes:
               decision === "approved"
                 ? "Approved from dashboard."
@@ -174,316 +179,322 @@ function App() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#0f172a",
-        padding: "40px",
-        color: "#e5e7eb",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-        }}
-      >
-        <h1
-          style={{
-            marginBottom: "8px",
-            color: "#ffffff",
-          }}
-        >
-          AI Lead Qualification Dashboard
-        </h1>
+    <main className="app-shell">
+      <div className="dashboard-container">
+        {/* HEADER */}
 
-        <p
-          style={{
-            color: "#94a3b8",
-            marginBottom: "30px",
-          }}
-        >
-          Quickly understand lead quality, urgency, and recommended next action.
-        </p>
+        <header className="dashboard-header">
+          <h1>AI Lead Qualification Dashboard</h1>
+
+          <p>
+            Quickly understand lead quality, urgency,
+            and recommended next action.
+          </p>
+        </header>
 
         {/* KPI CARDS */}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            gap: "16px",
-            marginBottom: "30px",
-          }}
-        >
-          <div style={cardStyle}>
-            <h3 style={labelStyle}>Total Leads</h3>
-            <h2 style={numberStyle}>
+        <section className="kpi-grid">
+          <div className="dashboard-card kpi-card">
+            <h3>Total Leads</h3>
+            <strong>
               {loading ? "..." : totalLeads}
-            </h2>
+            </strong>
           </div>
 
-          <div style={cardStyle}>
-            <h3 style={labelStyle}>🔥 Hot Leads</h3>
-            <h2 style={numberStyle}>
+          <div className="dashboard-card kpi-card">
+            <h3>🔥 Hot Leads</h3>
+            <strong>
               {loading ? "..." : hotLeads}
-            </h2>
+            </strong>
           </div>
 
-          <div style={cardStyle}>
-            <h3 style={labelStyle}>🌤 Warm Leads</h3>
-            <h2 style={numberStyle}>
+          <div className="dashboard-card kpi-card">
+            <h3>🌤 Warm Leads</h3>
+            <strong>
               {loading ? "..." : warmLeads}
-            </h2>
+            </strong>
           </div>
 
-          <div style={cardStyle}>
-            <h3 style={labelStyle}>❄️ Cold Leads</h3>
-            <h2 style={numberStyle}>
+          <div className="dashboard-card kpi-card">
+            <h3>❄️ Cold Leads</h3>
+            <strong>
               {loading ? "..." : coldLeads}
-            </h2>
+            </strong>
           </div>
-        </div>
+        </section>
 
-        {/* LEADS TABLE */}
+        {/* RECENT LEADS */}
 
-        <div style={cardStyle}>
-          <h2
-            style={{
-              color: "#ffffff",
-              marginBottom: "8px",
-            }}
-          >
-            Recent Leads
-          </h2>
+        <section className="dashboard-card leads-section">
+          <div className="section-heading">
+            <h2>Recent Leads</h2>
 
-          <p
-            style={{
-              color: "#94a3b8",
-              marginBottom: "20px",
-              fontSize: "14px",
-            }}
-          >
-            Click any lead to view the AI qualification details.
-          </p>
+            <p>
+              Click any lead to view the AI
+              qualification details.
+            </p>
+          </div>
 
           {loading && (
-            <p style={{ color: "#94a3b8" }}>
+            <p className="status-message">
               Loading leads...
             </p>
           )}
 
           {error && (
-            <p style={{ color: "#fca5a5" }}>
+            <p className="error-message">
               {error}
             </p>
           )}
 
-          {!loading && !error && leads.length > 0 && (
-            <div style={{ overflowX: "auto" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                }}
-              >
-                <thead>
-                  <tr style={{ textAlign: "left" }}>
-                    <th style={headerCell}>Name</th>
-                    <th style={headerCell}>Company</th>
-                    <th style={headerCell}>Score</th>
-                    <th style={headerCell}>
-                      Classification
-                    </th>
-                    <th style={headerCell}>Urgency</th>
-                    <th style={headerCell}>
-                      Recommended Action
-                    </th>
-                  </tr>
-                </thead>
+          {!loading &&
+            !error &&
+            leads.length === 0 && (
+              <div className="empty-state">
+                No leads available yet.
+              </div>
+            )}
 
-                <tbody>
-                  {leads.map((lead) => (
-                    <tr
-                      key={lead.id}
-                      onClick={() =>
-                        handleSelectLead(lead)
-                      }
-                      style={{
-                        cursor: "pointer",
-                        background:
-                          selectedLead?.id === lead.id
-                            ? "#273449"
-                            : "transparent",
-                      }}
-                    >
-                      <td style={tableCell}>
-                        {lead.name || "-"}
-                      </td>
+          {/* DESKTOP / TABLET TABLE */}
 
-                      <td style={tableCell}>
-                        {lead.company || "-"}
-                      </td>
-
-                      <td style={tableCell}>
-                        {lead.score ?? "-"}
-                      </td>
-
-                      <td style={tableCell}>
-                        {lead.classification ? (
-                          <span
-                            style={getBadgeStyle(
-                              lead.classification
-                            )}
-                          >
-                            {getClassificationIcon(
-                              lead.classification
-                            )}{" "}
-                            {lead.classification}
-                          </span>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
-
-                      <td style={tableCell}>
-                        {formatText(lead.urgency)}
-                      </td>
-
-                      <td style={tableCell}>
-                        {formatText(
-                          lead.recommended_action
-                        )}
-                      </td>
+          {!loading &&
+            !error &&
+            leads.length > 0 && (
+              <div className="desktop-table-wrapper">
+                <table className="leads-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Company</th>
+                      <th>Score</th>
+                      <th>Classification</th>
+                      <th>Urgency</th>
+                      <th>
+                        Recommended Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
+                  </thead>
 
-        {/* LEAD DETAILS */}
+                  <tbody>
+                    {leads.map((lead) => (
+                      <tr
+                        key={lead.id}
+                        onClick={() =>
+                          handleSelectLead(lead)
+                        }
+                        className={
+                          selectedLead?.id ===
+                          lead.id
+                            ? "selected-row"
+                            : ""
+                        }
+                      >
+                        <td>
+                          {lead.name || "-"}
+                        </td>
+
+                        <td>
+                          {lead.company || "-"}
+                        </td>
+
+                        <td>
+                          {lead.score ?? "-"}
+                        </td>
+
+                        <td>
+                          {lead.classification ? (
+                            <span
+                              className={`badge ${lead.classification.toLowerCase()}`}
+                            >
+                              {getClassificationIcon(
+                                lead.classification
+                              )}{" "}
+                              {
+                                lead.classification
+                              }
+                            </span>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+
+                        <td>
+                          {formatText(
+                            lead.urgency
+                          )}
+                        </td>
+
+                        <td>
+                          {formatText(
+                            lead.recommended_action
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+          {/* MOBILE LEAD CARDS */}
+
+          {!loading &&
+            !error &&
+            leads.length > 0 && (
+              <div className="mobile-leads">
+                {leads.map((lead) => (
+                  <button
+                    type="button"
+                    className="mobile-lead-card"
+                    key={lead.id}
+                    onClick={() =>
+                      handleSelectLead(lead)
+                    }
+                  >
+                    <div className="mobile-lead-top">
+                      <div>
+                        <h3>
+                          {lead.name || "-"}
+                        </h3>
+
+                        <p>
+                          {lead.company ||
+                            "No company"}
+                        </p>
+                      </div>
+
+                      {lead.classification && (
+                        <span
+                          className={`badge ${lead.classification.toLowerCase()}`}
+                        >
+                          {getClassificationIcon(
+                            lead.classification
+                          )}{" "}
+                          {
+                            lead.classification
+                          }
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="mobile-lead-details">
+                      <div>
+                        <span>Score</span>
+                        <strong>
+                          {lead.score ?? "-"}
+                        </strong>
+                      </div>
+
+                      <div>
+                        <span>Urgency</span>
+                        <strong>
+                          {formatText(
+                            lead.urgency
+                          )}
+                        </strong>
+                      </div>
+
+                      <div className="mobile-action-row">
+                        <span>
+                          Recommended Action
+                        </span>
+
+                        <strong>
+                          {formatText(
+                            lead.recommended_action
+                          )}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="view-details">
+                      View AI Details →
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+        </section>
+
+        {/* SELECTED LEAD DETAILS */}
 
         {selectedLead && (
-          <div
-            style={{
-              ...cardStyle,
-              marginTop: "30px",
-            }}
+          <section
+            id="lead-details"
+            className="dashboard-card lead-details-card"
           >
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "20px",
-                marginBottom: "25px",
-              }}
-            >
+            <div className="lead-details-header">
               <div>
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    margin: 0,
-                    fontSize: "14px",
-                  }}
-                >
+                <p className="eyebrow">
                   LEAD DETAILS
                 </p>
 
-                <h2
-                  style={{
-                    color: "#ffffff",
-                    margin: "6px 0",
-                  }}
-                >
+                <h2>
                   {selectedLead.name}
                 </h2>
 
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    margin: 0,
-                  }}
-                >
-                  {selectedLead.company || "No company"}
+                <p className="muted-text">
+                  {selectedLead.company ||
+                    "No company"}
                 </p>
               </div>
 
               <button
+                type="button"
+                className="close-button"
                 onClick={() =>
                   setSelectedLead(null)
                 }
-                style={closeButton}
               >
                 ✕ Close
               </button>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "repeat(3, 1fr)",
-                gap: "16px",
-                marginBottom: "25px",
-              }}
-            >
-              <div style={detailBox}>
-                <p style={detailLabel}>
+            {/* PRIMARY METRICS */}
+
+            <div className="detail-grid three-column">
+              <div className="detail-box">
+                <p className="detail-label">
                   Lead Score
                 </p>
 
-                <h2
-                  style={{
-                    margin: 0,
-                    color: "#ffffff",
-                  }}
-                >
+                <h2>
                   {selectedLead.score ?? "-"}
+
                   {selectedLead.score != null
                     ? " / 100"
                     : ""}
                 </h2>
               </div>
 
-              <div style={detailBox}>
-                <p style={detailLabel}>
+              <div className="detail-box">
+                <p className="detail-label">
                   Classification
                 </p>
 
                 {selectedLead.classification ? (
                   <span
-                    style={{
-                      ...getBadgeStyle(
-                        selectedLead.classification
-                      ),
-                      display: "inline-block",
-                      marginTop: "5px",
-                    }}
+                    className={`badge large-badge ${selectedLead.classification.toLowerCase()}`}
                   >
                     {getClassificationIcon(
                       selectedLead.classification
                     )}{" "}
-                    {selectedLead.classification}
+                    {
+                      selectedLead.classification
+                    }
                   </span>
                 ) : (
                   "-"
                 )}
               </div>
 
-              <div style={detailBox}>
-                <p style={detailLabel}>
+              <div className="detail-box">
+                <p className="detail-label">
                   Urgency
                 </p>
 
-                <h3
-                  style={{
-                    margin: 0,
-                    color: "#ffffff",
-                  }}
-                >
+                <h3>
                   {formatText(
                     selectedLead.urgency
                   )}
@@ -491,125 +502,101 @@ function App() {
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "1fr 1fr",
-                gap: "16px",
-                marginBottom: "16px",
-              }}
-            >
-              <div style={detailBox}>
-                <p style={detailLabel}>
+            {/* CONTACT */}
+
+            <div className="detail-grid two-column">
+              <div className="detail-box">
+                <p className="detail-label">
                   Email
                 </p>
 
-                <p style={detailValue}>
+                <p className="detail-value break-text">
                   {selectedLead.email || "-"}
                 </p>
               </div>
 
-              <div style={detailBox}>
-                <p style={detailLabel}>
+              <div className="detail-box">
+                <p className="detail-label">
                   Phone
                 </p>
 
-                <p style={detailValue}>
+                <p className="detail-value">
                   {selectedLead.phone || "-"}
                 </p>
               </div>
             </div>
 
-            <div style={detailBox}>
-              <p style={detailLabel}>
+            {/* CUSTOMER MESSAGE */}
+
+            <div className="detail-box">
+              <p className="detail-label">
                 Customer Message
               </p>
 
-              <p style={detailValue}>
+              <p className="detail-value">
                 {selectedLead.message || "-"}
               </p>
             </div>
 
-            <div
-              style={{
-                ...detailBox,
-                marginTop: "16px",
-              }}
-            >
-              <p style={detailLabel}>
+            {/* AI INTENT */}
+
+            <div className="detail-box spaced-box">
+              <p className="detail-label">
                 🧠 AI Intent
               </p>
 
-              <p style={detailValue}>
+              <p className="detail-value">
                 {selectedLead.intent || "-"}
               </p>
             </div>
 
-            <div
-              style={{
-                ...detailBox,
-                marginTop: "16px",
-              }}
-            >
-              <p style={detailLabel}>
+            {/* AI SUMMARY */}
+
+            <div className="detail-box spaced-box">
+              <p className="detail-label">
                 🤖 AI Summary
               </p>
 
-              <p style={detailValue}>
+              <p className="detail-value">
                 {selectedLead.ai_summary || "-"}
               </p>
             </div>
 
-            <div
-              style={{
-                ...detailBox,
-                marginTop: "16px",
-              }}
-            >
-              <p style={detailLabel}>
+            {/* RECOMMENDED ACTION */}
+
+            <div className="detail-box spaced-box">
+              <p className="detail-label">
                 Recommended Action
               </p>
 
-              <h3
-                style={{
-                  margin: 0,
-                  color: "#ffffff",
-                }}
-              >
+              <h3>
                 {formatText(
                   selectedLead.recommended_action
                 )}
               </h3>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns:
-                  "1fr 1fr",
-                gap: "16px",
-                marginTop: "16px",
-              }}
-            >
-              <div style={detailBox}>
-                <p style={detailLabel}>
+            {/* WORKFLOW STATUS */}
+
+            <div className="detail-grid two-column spaced-grid">
+              <div className="detail-box">
+                <p className="detail-label">
                   Workflow Status
                 </p>
 
-                <p style={detailValue}>
+                <p className="detail-value">
                   {formatText(
                     selectedLead.workflow_route
                   )}
                 </p>
               </div>
 
-              <div style={detailBox}>
-                <p style={detailLabel}>
+              <div className="detail-box">
+                <p className="detail-label">
                   Review Status
                 </p>
 
-                <p style={detailValue}>
+                <p className="detail-value">
                   {formatText(
                     selectedLead.review_status
                   )}
@@ -617,48 +604,28 @@ function App() {
               </div>
             </div>
 
-            {/* APPROVE / REJECT */}
+            {/* HUMAN REVIEW */}
 
             {selectedLead.workflow_route ===
               "awaiting_human_review" && (
-              <div
-                style={{
-                  marginTop: "25px",
-                  paddingTop: "25px",
-                  borderTop:
-                    "1px solid #334155",
-                }}
-              >
-                <h3
-                  style={{
-                    color: "#ffffff",
-                    marginBottom: "8px",
-                  }}
-                >
+              <div className="action-section">
+                <h3>
                   Human Review Required
                 </h3>
 
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    marginBottom: "18px",
-                  }}
-                >
-                  This HOT lead is waiting for your decision.
+                <p>
+                  This HOT lead is waiting for
+                  your decision.
                 </p>
 
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "12px",
-                  }}
-                >
+                <div className="action-buttons">
                   <button
+                    type="button"
                     disabled={reviewLoading}
                     onClick={() =>
                       handleReview("approved")
                     }
-                    style={approveButton}
+                    className="approve-button"
                   >
                     {reviewLoading
                       ? "Processing..."
@@ -666,11 +633,12 @@ function App() {
                   </button>
 
                   <button
+                    type="button"
                     disabled={reviewLoading}
                     onClick={() =>
                       handleReview("rejected")
                     }
-                    style={rejectButton}
+                    className="reject-button"
                   >
                     ✕ Reject Lead
                   </button>
@@ -678,40 +646,23 @@ function App() {
               </div>
             )}
 
-            {/* EXECUTE ACTION */}
+            {/* EXECUTE */}
 
             {selectedLead.workflow_route ===
               "approved_for_action" && (
-              <div
-                style={{
-                  marginTop: "25px",
-                  paddingTop: "25px",
-                  borderTop:
-                    "1px solid #334155",
-                }}
-              >
-                <h3
-                  style={{
-                    color: "#ffffff",
-                    marginBottom: "8px",
-                  }}
-                >
-                  Approved Lead
-                </h3>
+              <div className="action-section">
+                <h3>Approved Lead</h3>
 
-                <p
-                  style={{
-                    color: "#94a3b8",
-                    marginBottom: "18px",
-                  }}
-                >
-                  This lead is approved and ready for action.
+                <p>
+                  This lead is approved and ready
+                  for action.
                 </p>
 
                 <button
+                  type="button"
                   disabled={executeLoading}
                   onClick={handleExecuteAction}
-                  style={executeButton}
+                  className="execute-button"
                 >
                   {executeLoading
                     ? "Executing..."
@@ -724,172 +675,28 @@ function App() {
 
             {selectedLead.workflow_route ===
               "action_executed" && (
-              <div
-                style={{
-                  marginTop: "25px",
-                  padding: "18px",
-                  background: "#052e16",
-                  border:
-                    "1px solid #166534",
-                  borderRadius: "12px",
-                }}
-              >
-                <strong
-                  style={{
-                    color: "#86efac",
-                  }}
-                >
+              <div className="completed-box">
+                <strong>
                   ✓ Action Completed
                 </strong>
 
-                <p
-                  style={{
-                    color: "#bbf7d0",
-                    marginBottom: 0,
-                  }}
-                >
-                  This lead's approved action has already been executed.
+                <p>
+                  This lead&apos;s approved action
+                  has already been executed.
                 </p>
               </div>
             )}
 
             {actionMessage && (
-              <div
-                style={{
-                  marginTop: "20px",
-                  padding: "14px",
-                  background: "#0f172a",
-                  borderRadius: "10px",
-                  border: "1px solid #334155",
-                }}
-              >
+              <div className="action-message">
                 {actionMessage}
               </div>
             )}
-          </div>
+          </section>
         )}
       </div>
-    </div>
+    </main>
   );
 }
-
-
-/* ------------------- */
-/* STYLES              */
-/* ------------------- */
-
-const cardStyle = {
-  background: "#1e293b",
-  borderRadius: "14px",
-  padding: "20px",
-  border: "1px solid #334155",
-  boxShadow: "0 6px 20px rgba(0,0,0,0.25)",
-};
-
-const labelStyle = {
-  color: "#cbd5e1",
-  marginBottom: "8px",
-};
-
-const numberStyle = {
-  color: "#ffffff",
-  fontSize: "30px",
-};
-
-const headerCell = {
-  padding: "14px",
-  color: "#94a3b8",
-  borderBottom: "1px solid #334155",
-};
-
-const tableCell = {
-  padding: "14px",
-  color: "#e5e7eb",
-  borderBottom: "1px solid #334155",
-};
-
-const hotBadge = {
-  background: "#7f1d1d",
-  color: "#fecaca",
-  padding: "6px 10px",
-  borderRadius: "999px",
-  fontWeight: "bold",
-};
-
-const warmBadge = {
-  background: "#78350f",
-  color: "#fde68a",
-  padding: "6px 10px",
-  borderRadius: "999px",
-  fontWeight: "bold",
-};
-
-const coldBadge = {
-  background: "#164e63",
-  color: "#bae6fd",
-  padding: "6px 10px",
-  borderRadius: "999px",
-  fontWeight: "bold",
-};
-
-const detailBox = {
-  background: "#0f172a",
-  border: "1px solid #334155",
-  padding: "18px",
-  borderRadius: "12px",
-};
-
-const detailLabel = {
-  color: "#94a3b8",
-  margin: "0 0 8px 0",
-  fontSize: "13px",
-  fontWeight: "bold",
-  textTransform: "uppercase",
-};
-
-const detailValue = {
-  color: "#e5e7eb",
-  margin: 0,
-  lineHeight: "1.6",
-};
-
-const approveButton = {
-  background: "#166534",
-  color: "#dcfce7",
-  border: "1px solid #22c55e",
-  padding: "12px 20px",
-  borderRadius: "9px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const rejectButton = {
-  background: "#7f1d1d",
-  color: "#fee2e2",
-  border: "1px solid #ef4444",
-  padding: "12px 20px",
-  borderRadius: "9px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const executeButton = {
-  background: "#1d4ed8",
-  color: "#dbeafe",
-  border: "1px solid #3b82f6",
-  padding: "12px 20px",
-  borderRadius: "9px",
-  cursor: "pointer",
-  fontWeight: "bold",
-};
-
-const closeButton = {
-  background: "#334155",
-  color: "#ffffff",
-  border: "none",
-  padding: "9px 14px",
-  borderRadius: "8px",
-  cursor: "pointer",
-};
 
 export default App;
